@@ -1,0 +1,211 @@
+#include <stdbool.h>
+#include <stdlib.h>
+#include "win.h"
+
+bool game_over(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if the game is over
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won or the game is tied
+    */
+    return someone_won(board, num_rows, num_cols, num_pieces_to_win, blank_char) 
+            || tie_game(board, num_rows, num_cols, num_pieces_to_win, blank_char);
+}
+
+bool someone_won(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /* 
+    checks if someone won
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won horizontally, vertically, or diagonally
+    */
+    return someone_won_horizontally(board, num_rows, num_cols, num_pieces_to_win, blank_char) 
+            || someone_won_vertically(board, num_rows, num_cols, num_pieces_to_win, blank_char) 
+            || someone_won_diagonally(board, num_rows, num_cols, num_pieces_to_win, blank_char);
+}
+
+bool someone_won_horizontally(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks the rows on the board to see if someone won horizontally
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won horizontally
+    */
+    for (int i = 0; i < num_rows; ++i) {
+        if (enough_pieces_to_win(board[i], num_cols, num_pieces_to_win, blank_char)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool someone_won_vertically(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks the columns on the board to see if someone won vertically
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won vertically
+    */
+    for (int i = 0; i < num_cols; ++i) {
+        char* col = get_column(board, num_rows, num_cols, i);
+        if (enough_pieces_to_win(col, num_rows, num_pieces_to_win, blank_char)) {
+            free(col);
+            return true;
+        }
+        free(col);
+    }
+    return false;
+}
+
+char* get_column(char** board, int num_rows, int num_cols, int col) {
+    /*
+    gets all the values in a column
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @return: the specified column on the board
+    */
+	char* column = (char*)calloc(num_cols, sizeof(char));
+    for (int i = 0; i < num_rows; ++i) {
+		column[i] = board[i][col];
+	}
+	return column;
+}
+
+bool enough_pieces_to_win(char* board, int len, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if there are enough consecutive pieces on the board to win
+    @board: the num_rows x num_cols matrix the game is played on
+    @len: length of the row/column to check
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if there are enough consecutive pieces on the board to win
+    */
+    int num_pieces_in_a_row = 1;
+    if (num_pieces_to_win > len) {
+        return false;
+    }
+    for (int i = len - 1; i >= num_pieces_to_win - 1; --i) {
+        for (int j = 1; j < num_pieces_to_win; ++j) {
+            if ((board[i] == board[i - j]) && (board[i] != blank_char)) {
+                ++num_pieces_in_a_row;
+            } else { 
+                num_pieces_in_a_row = 1;
+            }
+            if (num_pieces_in_a_row == num_pieces_to_win) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+bool someone_won_diagonally(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if someone won diagonally
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won diagonally
+    */
+    if (num_pieces_to_win > num_rows || num_pieces_to_win > num_cols) {
+        return false;
+    }
+    return someone_won_left_diagonally(board, num_rows, num_cols, num_pieces_to_win, blank_char) 
+            || someone_won_right_diagonally(board, num_rows, num_cols, num_pieces_to_win, blank_char);
+}
+
+bool someone_won_left_diagonally(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if someone won on a left diagonal
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won on a left diagonal
+    */
+    int num_pieces_in_a_row = 1;
+    for (int i = num_rows - 1; i >= num_pieces_to_win - 1; --i) {
+        for (int j = num_cols - 1; j >= num_pieces_to_win - 1; --j) {
+            for (int k = 1; k < num_pieces_to_win; ++k) {
+                if ((board[i][j] == board[i - k][j - k]) && (board[i][j] != blank_char)) {
+                    ++num_pieces_in_a_row;
+                } else { 
+                    num_pieces_in_a_row = 1;
+                }
+                if (num_pieces_in_a_row == num_pieces_to_win) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool someone_won_right_diagonally(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if someone won on a right diagonal
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if someone won on a right diagonal
+    */
+    int num_pieces_in_a_row = 1;
+    for (int i = 0; i <= num_rows - num_pieces_to_win; ++i) {
+        for (int j = num_cols - 1; j >= num_pieces_to_win - 1; --j) {
+            for (int k = 1; k < num_pieces_to_win; ++k) {
+                if ((board[i][j] == board[i + k][j - k]) && (board[i][j] != blank_char)) {
+                ++num_pieces_in_a_row;
+                } else { 
+                    num_pieces_in_a_row = 1;
+                }
+                if (num_pieces_in_a_row == num_pieces_to_win) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool tie_game(char** board, int num_rows, int num_cols, int num_pieces_to_win, char blank_char) {
+    /*
+    checks if the game is tied
+    @board: the num_rows x num_cols matrix the game is played on
+    @num_rows: number of rows on the board
+    @num_cols: number of cols on the board
+    @num_pieces_to_win: the number of pieces needed in a row to win
+    @blank_char: the character denoting an empty space on the board
+    @return: true if there are no empty spaces on the board and no one won(the game is tied)
+    */
+    if (someone_won(board, num_rows, num_cols, num_pieces_to_win, blank_char)) {
+        return false;
+    }
+    for (int i = 0; i < num_rows; ++i) {
+        for (int j = 0; j < num_cols; ++j) {
+            if (board[i][j] == blank_char) {
+                return false;
+            }
+        }
+    }
+    return true;
+}

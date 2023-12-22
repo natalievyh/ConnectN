@@ -1,0 +1,12 @@
+Play Connect-n, a version of Connect-4 where the board dimensions and number of pieces needed to win are user-specified
+
+To play:
+enter "./connectn.out num_rows num_columns number_of_pieces_in_a_row_needed_to_win" into the terminal
+
+Game Instructions:
+
+Connect-N is a 2 player game, with Player 1 assigned to the 'X' piece and Player 2 to the 'O' piece
+
+Each player takes turns placing their piece into a valid column until there are enough pieces in a column, row, or diagonal to win, or there is a tie
+
+Each empty space on the board is denoted by an asterik(*)
